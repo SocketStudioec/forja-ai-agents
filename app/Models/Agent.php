@@ -12,7 +12,13 @@ final class Agent
         COALESCE(NULLIF(TRIM(CONCAT(COALESCE(u.name,''),' ',COALESCE(u.lastname,''))),''),
                  u.username, a.author_name, 'Forja') AS author_display,
         u.username AS author_username,
-        (SELECT COUNT(*) FROM agent_skills axs WHERE axs.agent_id = a.id) AS skills_count";
+        (SELECT COUNT(*) FROM agent_skills axs WHERE axs.agent_id = a.id) AS skills_count,
+        (SELECT GROUP_CONCAT(c2.name ORDER BY ac2.is_primary DESC, c2.position ASC SEPARATOR '|')
+           FROM agent_categories ac2 JOIN categories c2 ON c2.id = ac2.category_id
+          WHERE ac2.agent_id = a.id) AS category_names,
+        (SELECT GROUP_CONCAT(c3.slug ORDER BY ac3.is_primary DESC, c3.position ASC SEPARATOR '|')
+           FROM agent_categories ac3 JOIN categories c3 ON c3.id = ac3.category_id
+          WHERE ac3.agent_id = a.id) AS category_slugs";
 
     private const FROM = 'FROM agents a
         LEFT JOIN categories c ON c.id = a.category_id
@@ -115,7 +121,11 @@ final class Agent
             $params['q1'] = $params['q2'] = $params['q3'] = $params['q4'] = $like;
         }
         if (!empty($f['category'])) {
-            $where[] = 'c.slug = :cat';
+            // Un agente aparece bajo cualquiera de sus categorías, no sólo
+            // bajo la principal.
+            $where[] = 'EXISTS (SELECT 1 FROM agent_categories acf
+                                  JOIN categories ccf ON ccf.id = acf.category_id
+                                 WHERE acf.agent_id = a.id AND ccf.slug = :cat)';
             $params['cat'] = $f['category'];
         }
         if (!empty($f['compat'])) {
@@ -172,7 +182,12 @@ final class Agent
 
         if (!empty($f['status']))     { $where[] = 'a.status = :st';       $params['st']  = $f['status']; }
         if (!empty($f['visibility'])) { $where[] = 'a.visibility = :vis';  $params['vis'] = $f['visibility']; }
-        if (!empty($f['category']))   { $where[] = 'c.slug = :cat';        $params['cat'] = $f['category']; }
+        if (!empty($f['category'])) {
+            $where[] = 'EXISTS (SELECT 1 FROM agent_categories acf
+                                  JOIN categories ccf ON ccf.id = acf.category_id
+                                 WHERE acf.agent_id = a.id AND ccf.slug = :cat)';
+            $params['cat'] = $f['category'];
+        }
         if (!empty($f['q'])) {
             $where[] = '(a.name LIKE :q1 OR a.slug LIKE :q2 OR u.email LIKE :q3 OR a.author_email LIKE :q4)';
             $like = '%' . $f['q'] . '%';
@@ -192,6 +207,80 @@ final class Agent
         );
 
         return ['items' => $items, 'total' => $total, 'pages' => (int) max(1, ceil($total / $perPage)), 'page' => $page];
+    }
+
+    /** @return array<int,int> ids de todas las categorías del agente */
+    public static function categoryIds(int $agentId): array
+    {
+        $rows = Database::all(
+            'SELECT ac.category_id FROM agent_categories ac
+             JOIN categories c ON c.id = ac.category_id
+             WHERE ac.agent_id = :id
+             ORDER BY ac.is_primary DESC, c.position ASC',
+            ['id' => $agentId]
+        );
+        return array_map(static fn ($r) => (int) $r['category_id'], $rows);
+    }
+
+    /**
+     * Reemplaza el conjunto de categorías. La primera de la lista, en orden de
+     * posición, queda como principal y se refleja en `agents.category_id` para
+     * que la insignia y los listados sigan teniendo una sola categoría visible.
+     *
+     * @param array<int,int> $categoryIds
+     */
+    public static function syncCategories(int $agentId, array $categoryIds): void
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $categoryIds))));
+
+        Database::run('DELETE FROM agent_categories WHERE agent_id = :id', ['id' => $agentId]);
+
+        if (!$ids) {
+            Database::run('UPDATE agents SET category_id = NULL WHERE id = :id', ['id' => $agentId]);
+            return;
+        }
+
+        $in    = implode(',', array_fill(0, count($ids), '?'));
+        $orden = Database::all(
+            'SELECT id FROM categories WHERE id IN (' . $in . ') ORDER BY position ASC, name ASC',
+            $ids
+        );
+        $orden = array_map(static fn ($r) => (int) $r['id'], $orden);
+        if (!$orden) {
+            return;
+        }
+
+        $principal = $orden[0];
+        foreach ($orden as $cid) {
+            Database::insert('agent_categories', [
+                'agent_id'    => $agentId,
+                'category_id' => $cid,
+                'is_primary'  => $cid === $principal ? 1 : 0,
+            ]);
+        }
+        Database::run('UPDATE agents SET category_id = :c WHERE id = :id', ['c' => $principal, 'id' => $agentId]);
+    }
+
+    /** @return array<int,string> nombres, la principal primero */
+    public static function categoryNames(array $agent): array
+    {
+        $raw = (string) ($agent['category_names'] ?? '');
+        if ($raw === '') {
+            return !empty($agent['category_name']) ? [(string) $agent['category_name']] : [];
+        }
+        return array_values(array_filter(explode('|', $raw)));
+    }
+
+    /** @return array<int,array{name:string,slug:string}> */
+    public static function categoryPairs(array $agent): array
+    {
+        $nombres = self::categoryNames($agent);
+        $slugs   = array_values(array_filter(explode('|', (string) ($agent['category_slugs'] ?? ''))));
+        $out     = [];
+        foreach ($nombres as $i => $n) {
+            $out[] = ['name' => $n, 'slug' => $slugs[$i] ?? ($agent['category_slug'] ?? '')];
+        }
+        return $out;
     }
 
     public static function uniqueSlug(string $name, ?int $ignoreId = null): string

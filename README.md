@@ -137,6 +137,15 @@ que se fusiona encima. La conversión nunca altera el texto de las instrucciones
 
 Detalles en [`docs/formatos.md`](docs/formatos.md).
 
+Un agente puede pertenecer a **varias categorías** a la vez. La de posición más
+alta queda como principal, que es la que aparece en la insignia y la que ordena;
+el resto sirven para que el agente se encuentre por cualquiera de ellas en el
+catálogo.
+
+Las reglas y habilidades de marketing citan fuentes primarias en materia de
+cumplimiento. De dónde sale cada una está en
+[`docs/investigacion-marketing.md`](docs/investigacion-marketing.md).
+
 ---
 
 ## 6. Seguridad

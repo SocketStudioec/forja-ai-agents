@@ -21,6 +21,9 @@ use App\Models\User;
 
 final class DashboardController extends Controller
 {
+    /** Categorías elegidas en el formulario, resueltas al validar. @var array<int,int> */
+    private array $categoriasAgente = [];
+
     public function __construct()
     {
         Auth::requireLogin();
@@ -268,6 +271,7 @@ final class DashboardController extends Controller
     {
         $agent  = null;
         $linked = [];
+        $cats   = [];
         if (!empty($args['id'])) {
             $agent = Agent::find((int) $args['id']);
             if ($agent === null) {
@@ -276,6 +280,7 @@ final class DashboardController extends Controller
             }
             Auth::requireOwnership($agent['user_id'] !== null ? (int) $agent['user_id'] : null);
             $linked = Agent::skillIds((int) $agent['id']);
+            $cats   = Agent::categoryIds((int) $agent['id']);
         }
 
         // Puede enlazar sus propias habilidades y cualquiera publicada.
@@ -290,6 +295,7 @@ final class DashboardController extends Controller
         $this->view('dashboard/agent-form', [
             'agent'      => $agent,
             'linked'     => $linked,
+            'cats'       => $cats,
             'available'  => $available,
             'categories' => Category::active(),
             'compat'     => Config::compatibilityOptions(),
@@ -327,6 +333,7 @@ final class DashboardController extends Controller
 
             $id = Database::insert('agents', $data);
             Agent::syncSkills($id, $skillIds, array_map('intval', Http::inputArray('required')));
+            Agent::syncCategories($id, $this->categoriasAgente);
             Audit::log('agent_created', 'agent', $id, ['name' => $data['name'], 'skills' => count($skillIds)]);
 
             Session::flash('ok', $action === 'publish'
@@ -350,6 +357,7 @@ final class DashboardController extends Controller
 
         Database::update('agents', $data, 'id = :id', ['id' => $id]);
         Agent::syncSkills($id, $skillIds, array_map('intval', Http::inputArray('required')));
+        Agent::syncCategories($id, $this->categoriasAgente);
         Audit::log('agent_updated', 'agent', $id, ['name' => $data['name'], 'skills' => count($skillIds)]);
 
         Session::flash('ok', 'Agente actualizado.');
@@ -666,7 +674,10 @@ final class DashboardController extends Controller
         $short      = Http::input('short_description');
         $rules      = Http::inputRaw('rules_md');
         $prompt     = Http::inputRaw('system_prompt');
-        $categoryId = Http::inputInt('category_id');
+        // Un agente puede pertenecer a varias categorías: cuál es la principal
+        // lo resuelve Agent::syncCategories por orden de posición.
+        $categorias = array_values(array_filter(array_map('intval', Http::inputArray('categories'))));
+        $categoryId = $categorias[0] ?? Http::inputInt('category_id');
         $tags       = Str::csvFromList(Str::listFromCsv(Http::input('tags')));
         $compat     = array_values(array_intersect(Http::inputArray('compatibility'), Config::compatibilityOptions()));
         $visibility = Http::input('visibility', 'public');
@@ -688,14 +699,18 @@ final class DashboardController extends Controller
         $v->in('visibility', $visibility, ['public', 'private', 'unlisted'], 'La visibilidad');
         $v->condition('compatibility', $compat !== [], 'Elige al menos una compatibilidad.');
 
+        $categorias = array_values(array_filter($categorias, static fn ($c) => Category::find($c) !== null));
         if ($categoryId > 0 && Category::find($categoryId) === null) {
             $categoryId = 0;
         }
+        $v->condition('categories', $categorias !== [] || $categoryId > 0, 'Elige al menos una categoría.');
 
         if ($v->fails()) {
             $this->backWithErrors($v->errors());
             return null;
         }
+
+        $this->categoriasAgente = $categorias ?: ($categoryId > 0 ? [$categoryId] : []);
 
         return [
             'name'              => $name,

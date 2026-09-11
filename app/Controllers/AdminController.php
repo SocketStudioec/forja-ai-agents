@@ -626,6 +626,7 @@ final class AdminController extends Controller
                 'author_email'      => $submission['email'],
                 'published_at'      => $publish ? date('Y-m-d H:i:s') : null,
             ]);
+            Agent::syncCategories($newId, $categoryId > 0 ? [$categoryId] : []);
             $publicUrl = Config::absUrl('/agents/' . $slug);
             Database::update('skill_submissions', ['agent_id' => $newId], 'id = :id', ['id' => $id]);
             Audit::log('agent_created', 'agent', $newId, ['from_submission' => $submission['reference']]);

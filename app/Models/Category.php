@@ -27,8 +27,10 @@ final class Category
             "SELECT c.*,
                 (SELECT COUNT(*) FROM skills s WHERE s.category_id = c.id
                    AND s.status = 'published' AND s.visibility IN ('public','unlisted')) AS skills_count,
-                (SELECT COUNT(*) FROM agents a WHERE a.category_id = c.id
-                   AND a.status = 'published' AND a.visibility IN ('public','unlisted')) AS agents_count
+                (SELECT COUNT(DISTINCT a.id) FROM agents a
+                   JOIN agent_categories ac ON ac.agent_id = a.id
+                  WHERE ac.category_id = c.id
+                    AND a.status = 'published' AND a.visibility IN ('public','unlisted')) AS agents_count
              FROM categories c
              WHERE c.status = 'active'
              ORDER BY c.position ASC, c.name ASC"

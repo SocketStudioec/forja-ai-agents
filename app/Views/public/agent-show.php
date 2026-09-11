@@ -43,9 +43,9 @@ $metaDesc  = Str::excerpt((string) $agent['short_description'], 155);
         <div class="chips mt-2">
           <span class="badge badge-mint">v<?= e($agent['version']) ?></span>
           <span class="badge badge-sky"><?= count($skills) ?> habilidad<?= count($skills) === 1 ? '' : 'es' ?></span>
-          <?php if (!empty($agent['category_name'])): ?>
-            <a class="badge" href="<?= url('/agents') ?>?category=<?= e($agent['category_slug']) ?>"><?= e($agent['category_name']) ?></a>
-          <?php endif; ?>
+          <?php foreach (\App\Models\Agent::categoryPairs($agent) as $cat): ?>
+            <a class="badge" href="<?= url('/agents') ?>?category=<?= e($cat['slug']) ?>"><?= e($cat['name']) ?></a>
+          <?php endforeach; ?>
           <?php foreach ($compat as $c): ?><span class="badge"><?= e($c) ?></span><?php endforeach; ?>
           <?php foreach ($tags as $t): ?><span class="badge">#<?= e($t) ?></span><?php endforeach; ?>
         </div>

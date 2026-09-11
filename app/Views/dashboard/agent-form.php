@@ -160,15 +160,24 @@ $plantillaReglas = "# Nombre del agente\n\n"
         <div class="core pad">
           <h3 style="font-size:.95rem">Clasificación</h3>
 
-          <div class="field mt-2">
-            <label class="label" for="category_id">Categoría</label>
-            <select class="select" id="category_id" name="category_id">
-              <option value="">Sin categoría</option>
-              <?php foreach ($categories as $c):
-                  $sel = $isEdit ? (int) $agent['category_id'] === (int) $c['id'] : (string) old('category_id') === (string) $c['id']; ?>
-                <option value="<?= (int) $c['id'] ?>" <?= $sel ? 'selected' : '' ?>><?= e($c['name']) ?></option>
+          <div class="field<?= $err('categories') ?> mt-2">
+            <span class="label">Categorías <span class="req">*</span></span>
+            <div class="stack-sm" style="max-height:240px;overflow:auto">
+              <?php
+              $catsSel = $isEdit ? array_map('intval', $cats) : array_map('intval', (array) old('categories', []));
+              foreach ($categories as $c): ?>
+                <label class="check">
+                  <input type="checkbox" name="categories[]" value="<?= (int) $c['id'] ?>"
+                         <?= in_array((int) $c['id'], $catsSel, true) ? 'checked' : '' ?>>
+                  <span class="t"><?= e($c['name']) ?></span>
+                </label>
               <?php endforeach; ?>
-            </select>
+            </div>
+            <p class="hint">
+              Puedes marcar varias. La de posición más alta queda como principal
+              en la insignia y en los listados.
+            </p>
+            <?php if (isset($errors['categories'])): ?><p class="error-text"><?= e($errors['categories']) ?></p><?php endif; ?>
           </div>
 
           <div class="field">

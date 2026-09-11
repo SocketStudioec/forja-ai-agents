@@ -5,6 +5,7 @@
  */
 use App\Core\Str;
 use App\Core\View;
+use App\Models\Agent;
 use App\Models\Library;
 
 $skillPreview = $skillPreview ?? ($agent['skill_preview'] ?? []);
@@ -12,6 +13,7 @@ $delay        = $delay ?? 0;
 $compat       = Str::listFromCsv($agent['compatibility'] ?? '');
 $count        = (int) ($agent['skills_count'] ?? count($skillPreview));
 $enCuenta     = Library::hasAgent((int) $agent['id']);
+$cats         = Agent::categoryPairs($agent);
 ?>
 <article class="shellbox card agent-card reveal" <?= $delay ? 'data-d="' . (int) $delay . '"' : '' ?>>
   <div class="core">
@@ -42,7 +44,10 @@ $enCuenta     = Library::hasAgent((int) $agent['id']);
     <div class="card-tags chips">
       <span class="badge badge-mint">AGENT.md</span>
       <span class="badge badge-sky"><?= $count ?> skill<?= $count === 1 ? '' : 's' ?></span>
-      <?php if ($compat): ?><span class="badge"><?= e($compat[0]) ?></span><?php endif; ?>
+      <?php foreach (array_slice($cats, 0, 2) as $cat): ?>
+        <a class="badge" href="<?= url('/agents') ?>?category=<?= e($cat['slug']) ?>"><?= e($cat['name']) ?></a>
+      <?php endforeach; ?>
+      <?php if (count($cats) > 2): ?><span class="badge">+<?= count($cats) - 2 ?></span><?php endif; ?>
     </div>
 
     <div class="card-meta">
