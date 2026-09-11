@@ -3,19 +3,86 @@
 use App\Core\Audit;
 use App\Core\Auth;
 use App\Core\Str;
+use App\Core\View;
 use App\Models\Skill;
 ?>
 <div class="page-head">
   <div>
     <span class="eyebrow"><span class="dot"></span>Panel</span>
     <h1 style="margin-top:.9rem">Hola, <?= e($authUser['name']) ?></h1>
-    <p>Todo lo que has publicado y cómo se está usando.</p>
+    <p><?= $sinContenido
+        ? 'Todo el catálogo está disponible para que lo descargues.'
+        : 'Todo lo que has publicado y cómo se está usando.' ?></p>
   </div>
   <div class="btn-row">
-    <a class="btn btn-ghost btn-sm" href="<?= url('/dashboard/skills/new') ?>">Nueva skill <?= btnIcon('plus') ?></a>
-    <a class="btn btn-primary btn-sm" href="<?= url('/dashboard/agents/new') ?>">Nuevo agente <?= btnIcon('plus') ?></a>
+    <?php if ($sinContenido): ?>
+      <a class="btn btn-ghost btn-sm" href="<?= url('/dashboard/agents/new') ?>">Crear un agente <?= btnIcon('plus') ?></a>
+      <a class="btn btn-primary btn-sm" href="<?= url('/agents') ?>">Ver el catálogo <?= btnIcon('arrow') ?></a>
+    <?php else: ?>
+      <a class="btn btn-ghost btn-sm" href="<?= url('/dashboard/skills/new') ?>">Nueva skill <?= btnIcon('plus') ?></a>
+      <a class="btn btn-primary btn-sm" href="<?= url('/dashboard/agents/new') ?>">Nuevo agente <?= btnIcon('plus') ?></a>
+    <?php endif; ?>
   </div>
 </div>
+
+<?php if ($sinContenido): ?>
+  <!-- Quien acaba de registrarse no viene a ver sus cajas vacías: viene a ver
+       qué puede descargar. El catálogo va primero. -->
+  <div class="shellbox reveal mb-2">
+    <div class="core pad-lg">
+      <div class="row" style="align-items:flex-start;gap:1.4rem">
+        <div style="min-width:0;flex:1">
+          <span class="eyebrow"><span class="dot"></span>Todo listo para descargar</span>
+          <h2 style="margin-top:1.1rem;font-size:clamp(1.35rem,2.8vw,1.9rem)">
+            Tienes <?= (int) $catalogo['agents'] ?> agentes y <?= (int) $catalogo['skills'] ?> habilidades a tu disposición
+          </h2>
+          <p class="muted mt-2" style="max-width:56ch">
+            Todo el catálogo es público. Entra a cualquier agente, quédate sólo con las
+            habilidades que vayas a usar y descarga el paquete. No hace falta pedir permiso
+            ni esperar aprobación de nadie.
+          </p>
+          <div class="btn-row mt-3">
+            <a class="btn btn-primary" href="<?= url('/agents') ?>">Explorar agentes <?= btnIcon('arrow') ?></a>
+            <a class="btn btn-ghost" href="<?= url('/skills') ?>">Ver habilidades</a>
+            <a class="btn btn-ghost" href="<?= url('/builder') ?>">Armar mi paquete <?= btnIcon('layers') ?></a>
+          </div>
+        </div>
+
+        <div class="stack-sm hide-sm" style="flex:none;width:230px">
+          <?php
+          $pasos = [
+              ['agent',    'Elige un agente'],
+              ['layers',   'Quita lo que no uses'],
+              ['download', 'Descarga el ZIP'],
+          ];
+          foreach ($pasos as $i => [$ico, $texto]): ?>
+            <div class="format-item">
+              <span class="ext"><?= $i + 1 ?></span>
+              <span class="t"><?= e($texto) ?></span>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <?php if ($destacados): ?>
+    <div class="row" style="align-items:flex-end;margin:2rem 0 1.1rem">
+      <h2 style="font-size:1.15rem">Empieza por aquí</h2>
+      <a class="btn btn-ghost btn-sm push" href="<?= url('/agents') ?>">Ver los <?= (int) $catalogo['agents'] ?> <?= btnIcon('arrow') ?></a>
+    </div>
+    <div class="grid mb-2">
+      <?php foreach ($destacados as $i => $d): ?>
+        <?= View::partial('partials/agent-card', ['agent' => $d, 'delay' => $i + 1]) ?>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
+  <div class="row" style="align-items:flex-end;margin:2.2rem 0 1.1rem">
+    <h2 style="font-size:1.15rem">Tu espacio</h2>
+    <span class="badge push">todavía vacío</span>
+  </div>
+<?php endif; ?>
 
 <div class="stats">
   <?php

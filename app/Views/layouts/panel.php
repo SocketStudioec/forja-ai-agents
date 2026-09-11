@@ -18,6 +18,13 @@ $userLinks = [
     ['/dashboard/favorites',  'Favoritos',    'star'],
     ['/dashboard/account',    'Mi cuenta',    'settings'],
 ];
+// El catálogo es lo que un usuario nuevo viene a ver: tiene que estar en la
+// barra lateral, no escondido en un enlace de la cabecera.
+$catalogLinks = [
+    ['/agents',   'Agentes',     'agent'],
+    ['/skills',   'Habilidades', 'skill'],
+    ['/builder',  'Constructor', 'layers'],
+];
 $adminLinks = [
     ['/admin',              'Resumen',      'chart',    null],
     ['/admin/submissions',  'Bandeja',      'inbox',    $pending ?: null],
@@ -91,6 +98,12 @@ $adminLinks = [
               <?php if ($count): ?><span class="count"><?= (int) $count ?></span><?php endif; ?>
             </a>
           <?php endforeach; ?>
+
+          <span class="grp">Catálogo</span>
+          <?php foreach ($catalogLinks as [$href, $label, $ico]): ?>
+            <a href="<?= url($href) ?>"><?= icon($ico, 15) ?><?= e($label) ?></a>
+          <?php endforeach; ?>
+          <a href="<?= url('/dashboard') ?>"><?= icon('grid', 15) ?>Mi panel</a>
         <?php else: ?>
           <span class="grp">Mi espacio</span>
           <?php foreach ($userLinks as [$href, $label, $ico]): ?>
@@ -99,6 +112,11 @@ $adminLinks = [
               <?= icon($ico, 15) ?><?= e($label) ?>
             </a>
           <?php endforeach; ?>
+          <span class="grp">Catálogo</span>
+          <?php foreach ($catalogLinks as [$href, $label, $ico]): ?>
+            <a href="<?= url($href) ?>"><?= icon($ico, 15) ?><?= e($label) ?></a>
+          <?php endforeach; ?>
+
           <?php if ($isAdmin): ?>
             <span class="grp">Administración</span>
             <a href="<?= url('/admin') ?>"><?= icon('shield', 15) ?>Ir al panel admin</a>

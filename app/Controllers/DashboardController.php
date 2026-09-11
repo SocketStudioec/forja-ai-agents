@@ -52,11 +52,30 @@ final class DashboardController extends Controller
             ['u' => $uid]
         );
 
+        // Qué hay disponible para descargar. Para quien acaba de entrar, esto
+        // es lo único que le interesa de esta pantalla.
+        $catalogo = [
+            'agents' => (int) Database::scalar("SELECT COUNT(*) FROM agents WHERE status='published' AND visibility='public'"),
+            'skills' => (int) Database::scalar("SELECT COUNT(*) FROM skills WHERE status='published' AND visibility='public'"),
+        ];
+
+        $misAgentes = Agent::forUser($uid);
+        $sinContenido = $stats['skills'] === 0 && $stats['agents'] === 0;
+
+        $destacados = $sinContenido ? Agent::featured(3) : [];
+        foreach ($destacados as &$d) {
+            $d['skill_preview'] = array_slice(Agent::skills((int) $d['id']), 0, 4);
+        }
+        unset($d);
+
         $this->view('dashboard/index', [
-            'stats'     => $stats,
-            'topSkills' => $topSkills,
-            'activity'  => $activity,
-            'agents'    => Agent::forUser($uid),
+            'stats'        => $stats,
+            'topSkills'    => $topSkills,
+            'activity'     => $activity,
+            'agents'       => $misAgentes,
+            'catalogo'     => $catalogo,
+            'sinContenido' => $sinContenido,
+            'destacados'   => $destacados,
         ], 'Mi panel', 'layouts/panel');
     }
 
