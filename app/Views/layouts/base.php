@@ -29,8 +29,8 @@ $metaDesc  = $metaDesc ?? 'Tienda de agentes de IA: reglas en Markdown, habilida
 <meta name="twitter:card" content="summary">
 
 <link rel="icon" href="<?= asset('favicon.svg') ?>" type="image/svg+xml">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="<?= asset('fonts/jakarta-latin.woff2') ?>">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="<?= asset('fonts/jbmono-latin.woff2') ?>">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="<?= e(Config::basePath()) ?>/assets/fonts/jakarta-latin.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="<?= e(Config::basePath()) ?>/assets/fonts/jbmono-latin.woff2">
 <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 <script src="<?= asset('js/theme.js') ?>"></script>
 </head>
