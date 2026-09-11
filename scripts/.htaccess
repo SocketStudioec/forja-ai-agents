@@ -1,0 +1,2 @@
+# Esta carpeta no se sirve por HTTP bajo ninguna circunstancia.
+Require all denied

@@ -1,0 +1,25 @@
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Contenido subido por usuarios
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+/storage/tmp/*
+!/storage/tmp/.gitkeep
+
+# Registros y temporales
+*.log
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# Dependencias (la app no usa ninguna, pero por si acaso)
+/vendor/
+/node_modules/
+
+# Editores
+.idea/
+.vscode/

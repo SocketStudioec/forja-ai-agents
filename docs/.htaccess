@@ -1,0 +1,7 @@
+# Esta carpeta guarda documentación del proyecto, no contenido servible.
+# Se deniegan los archivos reales, pero NO la ruta: /docs/openclaw es una ruta
+# de la aplicación y debe poder llegar al controlador frontal.
+<FilesMatch "\.(md|txt|sql|php|yml|yaml|json)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes

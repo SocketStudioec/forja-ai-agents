@@ -1,0 +1,29 @@
+# ===========================================================================
+#  Controlador frontal de la raíz.
+#  Todo el tráfico se reescribe internamente hacia public/, de modo que el
+#  código de la aplicación nunca queda expuesto aunque viva bajo el docroot.
+# ===========================================================================
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Si la petición ya apunta a public/, no volver a reescribirla (evita bucle).
+    RewriteRule ^public/ - [L]
+
+    RewriteRule ^$ public/index.php [L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# El archivo de entorno jamás se sirve, ni siquiera si mod_rewrite falla.
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+<FilesMatch "\.(sql|log|lock|bak)$">
+    Require all denied
+</FilesMatch>
+<Files "README.md">
+    Require all denied
+</Files>
