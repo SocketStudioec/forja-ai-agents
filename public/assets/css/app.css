@@ -267,7 +267,11 @@ p:last-child { margin-bottom: 0; }
     border: 1px solid var(--line);
     border-radius: var(--r-pill);
     background: var(--veil);
-    white-space: nowrap;
+    max-width: 100%;
+    /* El rol de un agente puede ser una frase entera: si no envuelve, estira la
+       página a lo ancho en un teléfono. */
+    white-space: normal;
+    text-align: left;
 }
 .eyebrow .dot {
     width: 5px; height: 5px; border-radius: 50%;
@@ -584,7 +588,7 @@ p:last-child { margin-bottom: 0; }
 /* Tarjeta de código del hero */
 .code-card .core { background: var(--surface-sunken); }
 .code-head {
-    display: flex; align-items: center; gap: .6rem;
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; row-gap: .55rem;
     padding: .8rem 1.1rem;
     border-bottom: 1px solid var(--line);
     background: var(--surface-sunken);
@@ -699,8 +703,15 @@ p:last-child { margin-bottom: 0; }
     padding: 0 1.35rem;
     margin-top: 1rem;
 }
+/* Los slugs largos no pueden ensanchar la fila: la píldora se recorta con
+   puntos suspensivos antes que empujar la página a los lados. */
 .skill-pill {
-    display: inline-flex; align-items: center; gap: .35rem;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
     padding: .28rem .6rem;
     border-radius: var(--r-xs);
     border: 1px solid var(--line);
@@ -710,7 +721,7 @@ p:last-child { margin-bottom: 0; }
     transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
 .skill-pill:hover { color: var(--ink); border-color: var(--line-strong); }
-.skill-pill .ext { font-size: 9.5px; color: var(--mint); }
+.skill-pill .ext { font-size: 9.5px; color: var(--mint); margin-left: .35rem; }
 
 /* ------------------------------------------------------------- Formularios */
 .field { margin-bottom: 1.2rem; }
@@ -847,6 +858,7 @@ p:last-child { margin-bottom: 0; }
    el contraste indeterminado para los lectores y auditores automáticos. */
 .code-head .tabs {
     overflow: visible;
+    flex-wrap: wrap;
     gap: 2px;
     padding: 2px;
     background: var(--surface);
@@ -1332,7 +1344,7 @@ table.data .row-actions { display: flex; gap: .35rem; justify-content: flex-end;
 .stack-sm  { display: grid; grid-template-columns: minmax(0, 1fr); gap: .55rem; }
 .stack-lg  { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.6rem; }
 .row       { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
-.row-tight { display: flex; align-items: center; gap: .4rem; }
+.row-tight { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
 .push      { margin-left: auto; }
 .center    { text-align: center; }
 .center .lede { margin-inline: auto; }
