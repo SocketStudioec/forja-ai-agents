@@ -15,7 +15,7 @@ $userLinks = [
     ['/dashboard',            'Resumen',      'grid'],
     ['/dashboard/agents',     'Mis agentes',  'agent'],
     ['/dashboard/skills',     'Mis skills',   'skill'],
-    ['/dashboard/favorites',  'Favoritos',    'star'],
+    ['/dashboard/favorites',  'Mi biblioteca', 'star'],
     ['/dashboard/account',    'Mi cuenta',    'settings'],
 ];
 // El catálogo es lo que un usuario nuevo viene a ver: tiene que estar en la

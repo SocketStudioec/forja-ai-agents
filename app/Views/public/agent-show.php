@@ -190,12 +190,23 @@ $metaDesc  = Str::excerpt((string) $agent['short_description'], 155);
               </a>
             </div>
 
-            <div class="btn-row mt-2">
-              <button type="button" class="btn btn-primary btn-sm btn-block"
+            <div class="stack-sm mt-2">
+              <?= View::partial('partials/account-button', [
+                  'type'   => 'agent',
+                  'id'     => (int) $agent['id'],
+                  'active' => $isFavorite,
+                  'name'   => (string) $agent['name'],
+                  'size'   => '',
+                  'block'  => true,
+              ]) ?>
+              <button type="button" class="btn btn-ghost btn-sm btn-block"
                       data-cart-toggle="agent" data-slug="<?= e($agent['slug']) ?>"
-                      data-add-label="Añadir a mi paquete" aria-pressed="false">
-                <span data-cart-label>Añadir a mi paquete</span> <?= btnIcon('cart') ?>
+                      data-add-label="Añadir a un paquete" aria-pressed="false">
+                <span data-cart-label>Añadir a un paquete</span> <?= btnIcon('cart') ?>
               </button>
+              <p class="hint" style="text-align:center">
+                Un paquete combina varios agentes en un solo ZIP.
+              </p>
             </div>
           </div>
         </div>
@@ -229,14 +240,6 @@ $metaDesc  = Str::excerpt((string) $agent['short_description'], 155);
                  href="https://wa.me/?text=<?= rawurlencode($agent['name'] . ' — ' . $publicUrl) ?>">WhatsApp</a>
               <a class="btn btn-ghost btn-sm"
                  href="mailto:?subject=<?= rawurlencode((string) $agent['name']) ?>&body=<?= rawurlencode($publicUrl) ?>">Correo</a>
-              <?php if (Auth::check()): ?>
-                <button type="button" class="icon-btn <?= $isFavorite ? 'is-on' : '' ?>"
-                        data-fav="agent" data-fav-id="<?= (int) $agent['id'] ?>"
-                        data-token="<?= e(Csrf::token()) ?>"
-                        aria-pressed="<?= $isFavorite ? 'true' : 'false' ?>" aria-label="Guardar en favoritos">
-                  <?= icon('star') ?>
-                </button>
-              <?php endif; ?>
             </div>
           </div>
         </div>

@@ -15,6 +15,7 @@ use App\Core\Validator;
 use App\Core\Visibility;
 use App\Models\Agent;
 use App\Models\Category;
+use App\Models\Library;
 use App\Models\Skill;
 use App\Models\User;
 
@@ -458,7 +459,7 @@ final class DashboardController extends Controller
         $this->view('dashboard/favorites', [
             'skills' => $skills,
             'agents' => $agents,
-        ], 'Favoritos', 'layouts/panel');
+        ], 'Mi biblioteca', 'layouts/panel');
     }
 
     public function favoriteToggle(): void
@@ -495,7 +496,8 @@ final class DashboardController extends Controller
             Http::json(['ok' => true, 'active' => $active]);
         }
 
-        Session::flash('ok', $active ? 'Añadido a favoritos.' : 'Quitado de favoritos.');
+        Library::forget();
+        Session::flash('ok', $active ? 'Agregado a tu cuenta.' : 'Quitado de tu cuenta.');
         Http::back('/dashboard/favorites');
     }
 

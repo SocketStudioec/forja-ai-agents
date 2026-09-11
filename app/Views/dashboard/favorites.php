@@ -4,9 +4,9 @@ use App\Core\View;
 ?>
 <div class="page-head">
   <div>
-    <span class="eyebrow"><span class="dot"></span>Guardados</span>
-    <h1 style="margin-top:.9rem">Favoritos</h1>
-    <p>Lo que marcaste para volver luego.</p>
+    <span class="eyebrow"><span class="dot"></span>Mi cuenta</span>
+    <h1 style="margin-top:.9rem">Mi biblioteca</h1>
+    <p>Los agentes y las habilidades que agregaste a tu cuenta. Descárgalos cuando quieras.</p>
   </div>
 </div>
 
@@ -32,9 +32,10 @@ use App\Core\View;
   <div class="shellbox">
     <div class="core empty">
       <span class="glyph"><?= icon('star', 22) ?></span>
-      <h3>Todavía no has guardado nada</h3>
-      <p>Pulsa la estrella en la ficha de cualquier agente o habilidad para tenerlo a mano.</p>
-      <a class="btn btn-primary btn-sm mt-1" href="<?= url('/agents') ?>">Ver la tienda <?= btnIcon('arrow') ?></a>
+      <h3>Tu biblioteca está vacía</h3>
+      <p>Entra al catálogo y pulsa «Agregar a mi cuenta» en los agentes que vayas a usar.
+         Quedan aquí para que los encuentres rápido y los descargues cuando quieras.</p>
+      <a class="btn btn-primary btn-sm mt-1" href="<?= url('/agents') ?>">Ver el catálogo <?= btnIcon('arrow') ?></a>
     </div>
   </div>
 <?php endif; ?>

@@ -675,6 +675,32 @@ p:last-child { margin-bottom: 0; }
     flex: 1;
 }
 .card-tags { padding: 1rem 1.35rem 0; }
+/* Dos filas al pie de la tarjeta: primero el dato, después lo que se puede
+   hacer. Las acciones nunca compiten por espacio con las cifras. */
+.card-meta {
+    display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
+    margin-top: 1.15rem;
+    padding: .7rem 1.35rem;
+    border-top: 1px solid var(--line);
+    font-size: .76rem;
+    color: var(--ink-faint);
+}
+.card-meta .sep { width: 3px; height: 3px; border-radius: 50%; background: var(--line-strong); flex: none; }
+.card-meta a { color: var(--ink-mute); text-decoration: underline; text-underline-offset: 3px; }
+.card-meta a:hover { color: var(--ink); }
+
+.card-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .5rem;
+    padding: 0 1.35rem 1.25rem;
+}
+.card-actions > .btn { justify-content: center; }
+@media (max-width: 420px) {
+    .card-actions { grid-template-columns: 1fr; }
+}
+
+/* Compatibilidad con el pie antiguo por si alguna vista aún lo usa. */
 .card-foot {
     display: flex; align-items: center; gap: .8rem;
     margin-top: 1.15rem;

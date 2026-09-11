@@ -92,7 +92,7 @@ use App\Models\Skill;
       ['Publicados',  $stats['published'], 'Visibles al público',   'accent'],
       ['Pendientes',  $stats['pending'],   'Esperando revisión',    'warn'],
       ['Descargas',   $stats['downloads'], 'Acumuladas',            ''],
-      ['Favoritos',   $stats['favorites'], 'Guardados por ti',      ''],
+      ['En mi cuenta', $stats['favorites'], 'Guardados por ti',     ''],
   ];
   foreach ($cards as $i => [$k, $v, $d, $tone]): ?>
     <div class="shellbox tight stat <?= e($tone) ?> reveal" data-d="<?= min(4, $i + 1) ?>">

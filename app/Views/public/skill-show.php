@@ -159,11 +159,21 @@ $available = array_values(array_unique(array_merge(['json', 'md'], $formats)));
               <?php endforeach; ?>
             </div>
 
-            <button type="button" class="btn btn-primary btn-sm btn-block mt-2"
-                    data-cart-toggle="skill" data-slug="<?= e($skill['slug']) ?>"
-                    data-add-label="Añadir a mi paquete" aria-pressed="false">
-              <span data-cart-label>Añadir a mi paquete</span> <?= btnIcon('cart') ?>
-            </button>
+            <div class="stack-sm mt-2">
+              <?= View::partial('partials/account-button', [
+                  'type'   => 'skill',
+                  'id'     => (int) $skill['id'],
+                  'active' => $isFavorite,
+                  'name'   => (string) $skill['name'],
+                  'size'   => '',
+                  'block'  => true,
+              ]) ?>
+              <button type="button" class="btn btn-ghost btn-sm btn-block"
+                      data-cart-toggle="skill" data-slug="<?= e($skill['slug']) ?>"
+                      data-add-label="Añadir a un paquete" aria-pressed="false">
+                <span data-cart-label>Añadir a un paquete</span> <?= btnIcon('cart') ?>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -193,14 +203,6 @@ $available = array_values(array_unique(array_merge(['json', 'md'], $formats)));
                  href="https://wa.me/?text=<?= rawurlencode($skill['name'] . ' — ' . $publicUrl) ?>">WhatsApp</a>
               <a class="btn btn-ghost btn-sm"
                  href="mailto:?subject=<?= rawurlencode((string) $skill['name']) ?>&body=<?= rawurlencode($publicUrl) ?>">Correo</a>
-              <?php if (Auth::check()): ?>
-                <button type="button" class="icon-btn <?= $isFavorite ? 'is-on' : '' ?>"
-                        data-fav="skill" data-fav-id="<?= (int) $skill['id'] ?>"
-                        data-token="<?= e(Csrf::token()) ?>"
-                        aria-pressed="<?= $isFavorite ? 'true' : 'false' ?>" aria-label="Guardar en favoritos">
-                  <?= icon('star') ?>
-                </button>
-              <?php endif; ?>
             </div>
           </div>
         </div>

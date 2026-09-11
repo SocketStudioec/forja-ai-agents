@@ -198,7 +198,25 @@
                 if (!data || !data.ok) { return; }
                 btn.classList.toggle('is-on', data.active);
                 btn.setAttribute('aria-pressed', String(data.active));
-                toast(data.active ? 'Guardado en favoritos' : 'Quitado de favoritos', 'ok');
+
+                /* El botón grande cambia de texto y de peso visual: pasa de
+                   invitar a la acción a confirmar que ya está hecha. */
+                var label = btn.querySelector('[data-fav-label]');
+                if (label) {
+                    label.textContent = data.active
+                        ? (btn.getAttribute('data-label-on') || 'En mi cuenta')
+                        : (btn.getAttribute('data-label-off') || 'Agregar a mi cuenta');
+                    btn.classList.toggle('btn-primary', !data.active);
+                    btn.classList.toggle('btn-ghost', data.active);
+                    var ico = btn.querySelector('.btn-ico svg');
+                    if (ico) {
+                        ico.innerHTML = data.active
+                            ? '<path d="m4 12.5 5 5L20 7"/>'
+                            : '<path d="M12 5v14M5 12h14"/>';
+                    }
+                }
+
+                toast(data.active ? 'Agregado a tu cuenta' : 'Quitado de tu cuenta', 'ok');
             }).catch(function () { toast('No se pudo actualizar', 'error'); });
         });
     });

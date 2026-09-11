@@ -4,11 +4,14 @@
  * @var array $agent  @var array $skillPreview  @var int $delay
  */
 use App\Core\Str;
+use App\Core\View;
+use App\Models\Library;
 
 $skillPreview = $skillPreview ?? ($agent['skill_preview'] ?? []);
 $delay        = $delay ?? 0;
 $compat       = Str::listFromCsv($agent['compatibility'] ?? '');
 $count        = (int) ($agent['skills_count'] ?? count($skillPreview));
+$enCuenta     = Library::hasAgent((int) $agent['id']);
 ?>
 <article class="shellbox card agent-card reveal" <?= $delay ? 'data-d="' . (int) $delay . '"' : '' ?>>
   <div class="core">
@@ -42,17 +45,23 @@ $count        = (int) ($agent['skills_count'] ?? count($skillPreview));
       <?php if ($compat): ?><span class="badge"><?= e($compat[0]) ?></span><?php endif; ?>
     </div>
 
-    <div class="card-foot">
+    <div class="card-meta">
       <span class="mono"><?= e(Str::compactNumber((int) $agent['downloads'])) ?> descargas</span>
       <span class="sep" aria-hidden="true"></span>
-      <span class="hide-sm"><?= e(Str::timeAgo($agent['updated_at'] ?? null)) ?></span>
-      <span class="actions">
-        <button type="button" class="icon-btn" data-cart-toggle="agent" data-slug="<?= e($agent['slug']) ?>"
-                aria-pressed="false" title="Añadir a mi paquete" aria-label="Añadir <?= e($agent['name']) ?> a mi paquete">
-          <?= icon('cart', 15) ?>
-        </button>
-        <a class="btn btn-sm btn-ghost" href="<?= url('/agents/' . $agent['slug']) ?>">Ver</a>
-      </span>
+      <span><?= e(Str::timeAgo($agent['updated_at'] ?? null)) ?></span>
+      <a class="push" href="<?= url('/agents/' . $agent['slug']) ?>">Ver ficha</a>
+    </div>
+
+    <div class="card-actions">
+      <?= View::partial('partials/account-button', [
+          'type'   => 'agent',
+          'id'     => (int) $agent['id'],
+          'active' => $enCuenta,
+          'name'   => (string) $agent['name'],
+      ]) ?>
+      <a class="btn btn-ghost btn-sm" href="<?= url('/agents/' . $agent['slug'] . '/download') ?>?format=zip">
+        Descargar <?= btnIcon('download') ?>
+      </a>
     </div>
   </div>
 </article>

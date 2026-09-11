@@ -1,10 +1,13 @@
 <?php
 /** @var array $skill @var int $delay */
 use App\Core\Str;
+use App\Core\View;
+use App\Models\Library;
 
-$delay  = $delay ?? 0;
-$compat = Str::listFromCsv($skill['compatibility'] ?? '');
-$tags   = Str::listFromCsv($skill['tags'] ?? '');
+$delay    = $delay ?? 0;
+$compat   = Str::listFromCsv($skill['compatibility'] ?? '');
+$tags     = Str::listFromCsv($skill['tags'] ?? '');
+$enCuenta = Library::hasSkill((int) $skill['id']);
 ?>
 <article class="shellbox card reveal" <?= $delay ? 'data-d="' . (int) $delay . '"' : '' ?>>
   <div class="core">
@@ -30,19 +33,23 @@ $tags   = Str::listFromCsv($skill['tags'] ?? '');
       <?php if ($tags): ?><span class="badge">#<?= e($tags[0]) ?></span><?php endif; ?>
     </div>
 
-    <div class="card-foot">
+    <div class="card-meta">
       <span class="mono"><?= e(Str::compactNumber((int) $skill['downloads'])) ?> descargas</span>
       <span class="sep" aria-hidden="true"></span>
-      <span class="hide-sm"><?= e(Str::timeAgo($skill['updated_at'] ?? null)) ?></span>
-      <span class="actions">
-        <button type="button" class="icon-btn" data-cart-toggle="skill" data-slug="<?= e($skill['slug']) ?>"
-                aria-pressed="false" title="Añadir a mi paquete" aria-label="Añadir <?= e($skill['name']) ?> a mi paquete">
-          <?= icon('cart', 15) ?>
-        </button>
-        <a class="btn btn-sm btn-ghost" href="<?= url('/skills/' . $skill['slug'] . '/download') ?>?format=json">
-          JSON <?= btnIcon('download') ?>
-        </a>
-      </span>
+      <span><?= e(Str::timeAgo($skill['updated_at'] ?? null)) ?></span>
+      <a class="push" href="<?= url('/skills/' . $skill['slug']) ?>">Ver ficha</a>
+    </div>
+
+    <div class="card-actions">
+      <?= View::partial('partials/account-button', [
+          'type'   => 'skill',
+          'id'     => (int) $skill['id'],
+          'active' => $enCuenta,
+          'name'   => (string) $skill['name'],
+      ]) ?>
+      <a class="btn btn-ghost btn-sm" href="<?= url('/skills/' . $skill['slug'] . '/download') ?>?format=json">
+        Descargar <?= btnIcon('download') ?>
+      </a>
     </div>
   </div>
 </article>
