@@ -2,6 +2,8 @@
 /** @var array $agents */
 use App\Core\Csrf;
 use App\Core\Str;
+use App\Core\View;
+use App\Core\Visibility;
 use App\Models\Skill;
 ?>
 <div class="page-head">
@@ -21,7 +23,7 @@ use App\Models\Skill;
       <div class="table-wrap">
         <table class="data">
           <thead>
-            <tr><th>Agente</th><th>Skills</th><th>Versión</th><th>Estado</th><th class="num">Descargas</th><th></th></tr>
+            <tr><th>Agente</th><th>Skills</th><th>Versión</th><th>Estado</th><th>Visibilidad</th><th class="num">Descargas</th><th></th></tr>
           </thead>
           <tbody>
             <?php foreach ($agents as $a): ?>
@@ -34,6 +36,21 @@ use App\Models\Skill;
                 <td class="mono">v<?= e($a['version']) ?></td>
                 <td><span class="badge <?= $a['status'] === 'published' ? 'badge-mint' : '' ?>">
                   <?= e(Skill::statusLabel((string) $a['status'])) ?></span></td>
+                <td>
+                  <form method="post" action="<?= url('/dashboard/agents/' . $a['id'] . '/status') ?>">
+                    <?= Csrf::field() ?>
+                    <select class="select" name="visibility" data-autosubmit
+                            style="padding:.4rem .6rem;font-size:.78rem;min-width:118px"
+                            aria-label="Visibilidad de <?= e($a['name']) ?>">
+                      <?php foreach (Visibility::all() as $vv): ?>
+                        <option value="<?= e($vv) ?>" <?= $a['visibility'] === $vv ? 'selected' : '' ?>>
+                          <?= e(Visibility::label($vv)) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                    <noscript><button class="btn btn-ghost btn-sm" type="submit">Aplicar</button></noscript>
+                  </form>
+                </td>
                 <td class="num"><?= e(Str::compactNumber((int) $a['downloads'])) ?></td>
                 <td>
                   <div class="row-actions">

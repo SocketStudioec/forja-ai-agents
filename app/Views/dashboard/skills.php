@@ -2,6 +2,8 @@
 /** @var array $skills @var string $status */
 use App\Core\Csrf;
 use App\Core\Str;
+use App\Core\View;
+use App\Core\Visibility;
 use App\Models\Skill;
 
 $tabs = ['' => 'Todas', 'published' => 'Publicadas', 'draft' => 'Borradores', 'archived' => 'Archivadas'];
@@ -30,7 +32,7 @@ $tabs = ['' => 'Todas', 'published' => 'Publicadas', 'draft' => 'Borradores', 'a
       <div class="table-wrap">
         <table class="data">
           <thead>
-            <tr><th>Skill</th><th>Versión</th><th>Estado</th><th class="num">Descargas</th><th>Actualizada</th><th></th></tr>
+            <tr><th>Skill</th><th>Versión</th><th>Estado</th><th>Visibilidad</th><th class="num">Descargas</th><th>Actualizada</th><th></th></tr>
           </thead>
           <tbody>
             <?php foreach ($skills as $s): ?>
@@ -42,6 +44,21 @@ $tabs = ['' => 'Todas', 'published' => 'Publicadas', 'draft' => 'Borradores', 'a
                 <td class="mono">v<?= e($s['version']) ?></td>
                 <td><span class="badge <?= $s['status'] === 'published' ? 'badge-mint' : ($s['status'] === 'rejected' ? 'badge-danger' : '') ?>">
                   <?= e(Skill::statusLabel((string) $s['status'])) ?></span></td>
+                <td>
+                  <form method="post" action="<?= url('/dashboard/skills/' . $s['id'] . '/status') ?>">
+                    <?= Csrf::field() ?>
+                    <select class="select" name="visibility" data-autosubmit
+                            style="padding:.4rem .6rem;font-size:.78rem;min-width:118px"
+                            aria-label="Visibilidad de <?= e($s['name']) ?>">
+                      <?php foreach (Visibility::all() as $vv): ?>
+                        <option value="<?= e($vv) ?>" <?= $s['visibility'] === $vv ? 'selected' : '' ?>>
+                          <?= e(Visibility::label($vv)) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                    <noscript><button class="btn btn-ghost btn-sm" type="submit">Aplicar</button></noscript>
+                  </form>
+                </td>
                 <td class="num"><?= e(Str::compactNumber((int) $s['downloads'])) ?></td>
                 <td class="text-xs muted nowrap"><?= e(Str::timeAgo((string) $s['updated_at'])) ?></td>
                 <td>

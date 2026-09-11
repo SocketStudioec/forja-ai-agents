@@ -3,6 +3,7 @@
 use App\Core\Csrf;
 use App\Core\Str;
 use App\Core\View;
+use App\Core\Visibility;
 use App\Models\Skill;
 
 $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'published', 'archived'];
@@ -48,14 +49,14 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
       <div class="table-wrap">
         <table class="data">
           <thead>
-            <tr><th>Agente</th><th>Autor</th><th>Skills</th><th>Estado</th><th class="num">Descargas</th><th></th></tr>
+            <tr><th>Agente</th><th>Autor</th><th>Skills</th><th>Estado</th><th>Visibilidad</th><th class="num">Descargas</th><th></th></tr>
           </thead>
           <tbody>
             <?php foreach ($result['items'] as $a): ?>
               <tr>
                 <td>
                   <a class="row-main" href="<?= url('/agents/' . $a['slug']) ?>"><?= e($a['name']) ?></a>
-                  <span class="row-sub mono">v<?= e($a['version']) ?> · <?= e($a['visibility']) ?></span>
+                  <span class="row-sub mono">v<?= e($a['version']) ?></span>
                 </td>
                 <td class="text-xs">
                   <?= e($a['author_display']) ?>
@@ -69,6 +70,21 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
                       <?php foreach ($statuses as $st): ?>
                         <option value="<?= e($st) ?>" <?= $a['status'] === $st ? 'selected' : '' ?>>
                           <?= e(Skill::statusLabel($st)) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                    <noscript><button class="btn btn-ghost btn-sm" type="submit">Aplicar</button></noscript>
+                  </form>
+                </td>
+                <td>
+                  <form method="post" action="<?= url('/admin/agents/' . $a['id'] . '/status') ?>">
+                    <?= Csrf::field() ?>
+                    <select class="select" name="visibility" data-autosubmit
+                            style="padding:.4rem .6rem;font-size:.78rem;min-width:118px"
+                            aria-label="Visibilidad de <?= e($a['name']) ?>">
+                      <?php foreach (Visibility::all() as $vv): ?>
+                        <option value="<?= e($vv) ?>" <?= $a['visibility'] === $vv ? 'selected' : '' ?>>
+                          <?= e(Visibility::label($vv)) ?>
                         </option>
                       <?php endforeach; ?>
                     </select>

@@ -3,6 +3,7 @@
 use App\Core\Csrf;
 use App\Core\Str;
 use App\Core\View;
+use App\Core\Visibility;
 use App\Models\Skill;
 
 $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'published', 'archived'];
@@ -79,7 +80,10 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
                 <span class="badge <?= $s['status'] === 'published' ? 'badge-mint' : ($s['status'] === 'rejected' ? 'badge-danger' : ($s['status'] === 'pending' ? 'badge-amber' : '')) ?>">
                   <?= e(Skill::statusLabel((string) $s['status'])) ?>
                 </span>
-                <span class="badge"><?= e($s['visibility']) ?></span>
+                <span class="badge badge-<?= e(Visibility::tone((string) $s['visibility'])) ?>"
+                      title="<?= e(Visibility::hint((string) $s['visibility'])) ?>">
+                  <?= e(Visibility::label((string) $s['visibility'])) ?>
+                </span>
                 <?php if ((int) $s['featured'] === 1): ?><span class="badge badge-amber">destacada</span><?php endif; ?>
               </div>
 
@@ -99,6 +103,12 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
             </div>
 
             <div class="row-actions" style="flex:none">
+              <?= View::partial('partials/visibility-toggle', [
+                  'action'  => url('/admin/skills/' . $s['id'] . '/status'),
+                  'current' => (string) $s['visibility'],
+                  'label'   => (string) $s['name'],
+                  'compact' => true,
+              ]) ?>
               <a class="btn btn-ghost btn-sm" href="<?= url('/dashboard/skills/' . $s['id'] . '/edit') ?>">Editar</a>
               <form method="post" action="<?= url('/admin/skills/' . $s['id'] . '/feature') ?>">
                 <?= Csrf::field() ?>
@@ -114,7 +124,7 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
           </div>
 
           <details style="margin-top:.9rem">
-            <summary class="text-sm" style="cursor:pointer;color:var(--ink-mute)">Cambiar estado o dejar una nota de revisión</summary>
+            <summary class="text-sm" style="cursor:pointer;color:var(--ink-mute)">Cambiar estado, visibilidad o dejar una nota</summary>
             <form method="post" action="<?= url('/admin/skills/' . $s['id'] . '/status') ?>" class="mt-2">
               <?= Csrf::field() ?>
               <div class="form-grid">
@@ -128,6 +138,18 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
                     <?php endforeach; ?>
                   </select>
                 </div>
+                <div class="field">
+                  <label class="label" for="vis-<?= (int) $s['id'] ?>">Visibilidad</label>
+                  <select class="select" id="vis-<?= (int) $s['id'] ?>" name="visibility">
+                    <?php foreach (Visibility::all() as $vv): ?>
+                      <option value="<?= e($vv) ?>" <?= $s['visibility'] === $vv ? 'selected' : '' ?>>
+                        <?= e(Visibility::label($vv)) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                  <p class="hint"><?= e(Visibility::hint((string) $s['visibility'])) ?></p>
+                </div>
+
                 <div class="field">
                   <label class="label" for="rn-<?= (int) $s['id'] ?>">Nota para el autor</label>
                   <input class="input" type="text" id="rn-<?= (int) $s['id'] ?>" name="review_notes" maxlength="500"

@@ -12,6 +12,7 @@ use App\Core\Http;
 use App\Core\Session;
 use App\Core\Str;
 use App\Core\Validator;
+use App\Core\Visibility;
 use App\Models\Agent;
 use App\Models\Category;
 use App\Models\Skill;
@@ -187,20 +188,51 @@ final class DashboardController extends Controller
         }
         Auth::requireOwnership($skill['user_id'] !== null ? (int) $skill['user_id'] : null);
 
-        $to = Http::input('status');
-        if (!in_array($to, ['draft', 'published', 'archived'], true)) {
+        // Estado y visibilidad se envían por separado o juntos: lo que no venga
+        // en el formulario se queda como está.
+        $to  = Http::input('status');
+        $vis = Http::input('visibility');
+
+        $cambiaEstado      = $to !== '';
+        $cambiaVisibilidad = $vis !== '';
+
+        if (!$cambiaEstado && !$cambiaVisibilidad) {
+            Session::flash('error', 'No indicaste ningún cambio.');
+            Http::back('/dashboard/skills');
+        }
+        if ($cambiaEstado && !in_array($to, ['draft', 'published', 'archived'], true)) {
             Session::flash('error', 'Estado no válido.');
             Http::back('/dashboard/skills');
         }
-
-        $update = ['status' => $to];
-        if ($to === 'published' && empty($skill['published_at'])) {
-            $update['published_at'] = date('Y-m-d H:i:s');
+        if ($cambiaVisibilidad && !Visibility::isValid($vis)) {
+            Session::flash('error', 'Visibilidad no válida.');
+            Http::back('/dashboard/skills');
         }
+
+        $update = [];
+        $partes = [];
+
+        if ($cambiaEstado) {
+            $update['status'] = $to;
+            if ($to === 'published' && empty($skill['published_at'])) {
+                $update['published_at'] = date('Y-m-d H:i:s');
+            }
+            $partes[] = $to === 'published' ? 'publicada' : 'estado ' . Skill::statusLabel($to);
+        }
+        if ($cambiaVisibilidad) {
+            $update['visibility'] = $vis;
+            $partes[] = 'visibilidad ' . mb_strtolower(Visibility::label($vis));
+        }
+
         Database::update('skills', $update, 'id = :id', ['id' => (int) $skill['id']]);
 
-        Audit::log($to === 'published' ? 'skill_published' : 'skill_unpublished', 'skill', (int) $skill['id'], ['to' => $to]);
-        Session::flash('ok', $to === 'published' ? 'Habilidad publicada.' : 'Estado actualizado.');
+        Audit::log(
+            $cambiaEstado && $to === 'published' ? 'skill_published' : 'skill_updated',
+            'skill',
+            (int) $skill['id'],
+            array_filter(['estado' => $cambiaEstado ? $to : null, 'visibilidad' => $cambiaVisibilidad ? $vis : null])
+        );
+        Session::flash('ok', 'Habilidad actualizada: ' . implode(' y ', $partes) . '.');
         Http::back('/dashboard/skills');
     }
 
@@ -331,20 +363,49 @@ final class DashboardController extends Controller
         }
         Auth::requireOwnership($agent['user_id'] !== null ? (int) $agent['user_id'] : null);
 
-        $to = Http::input('status');
-        if (!in_array($to, ['draft', 'published', 'archived'], true)) {
+        $to  = Http::input('status');
+        $vis = Http::input('visibility');
+
+        $cambiaEstado      = $to !== '';
+        $cambiaVisibilidad = $vis !== '';
+
+        if (!$cambiaEstado && !$cambiaVisibilidad) {
+            Session::flash('error', 'No indicaste ningún cambio.');
+            Http::back('/dashboard/agents');
+        }
+        if ($cambiaEstado && !in_array($to, ['draft', 'published', 'archived'], true)) {
             Session::flash('error', 'Estado no válido.');
             Http::back('/dashboard/agents');
         }
-
-        $update = ['status' => $to];
-        if ($to === 'published' && empty($agent['published_at'])) {
-            $update['published_at'] = date('Y-m-d H:i:s');
+        if ($cambiaVisibilidad && !Visibility::isValid($vis)) {
+            Session::flash('error', 'Visibilidad no válida.');
+            Http::back('/dashboard/agents');
         }
+
+        $update = [];
+        $partes = [];
+
+        if ($cambiaEstado) {
+            $update['status'] = $to;
+            if ($to === 'published' && empty($agent['published_at'])) {
+                $update['published_at'] = date('Y-m-d H:i:s');
+            }
+            $partes[] = $to === 'published' ? 'publicado' : 'estado ' . Skill::statusLabel($to);
+        }
+        if ($cambiaVisibilidad) {
+            $update['visibility'] = $vis;
+            $partes[] = 'visibilidad ' . mb_strtolower(Visibility::label($vis));
+        }
+
         Database::update('agents', $update, 'id = :id', ['id' => (int) $agent['id']]);
 
-        Audit::log($to === 'published' ? 'agent_published' : 'agent_updated', 'agent', (int) $agent['id'], ['to' => $to]);
-        Session::flash('ok', 'Estado actualizado.');
+        Audit::log(
+            $cambiaEstado && $to === 'published' ? 'agent_published' : 'agent_updated',
+            'agent',
+            (int) $agent['id'],
+            array_filter(['estado' => $cambiaEstado ? $to : null, 'visibilidad' => $cambiaVisibilidad ? $vis : null])
+        );
+        Session::flash('ok', 'Agente actualizado: ' . implode(' y ', $partes) . '.');
         Http::back('/dashboard/agents');
     }
 

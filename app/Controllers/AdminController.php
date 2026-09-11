@@ -14,6 +14,7 @@ use App\Core\Markdown;
 use App\Core\Session;
 use App\Core\Str;
 use App\Core\Validator;
+use App\Core\Visibility;
 use App\Models\Agent;
 use App\Models\Category;
 use App\Models\Skill;
@@ -306,27 +307,62 @@ final class AdminController extends Controller
             return;
         }
 
+        // El formulario puede traer el estado, la visibilidad o ambos. Lo que no
+        // venga se deja como está, para que el botón rápido de visibilidad no
+        // arrastre sin querer el estado editorial.
         $to    = Http::input('status');
+        $vis   = Http::input('visibility');
         $notes = Http::inputRaw('review_notes');
         $valid = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'published', 'archived'];
 
-        if (!in_array($to, $valid, true)) {
+        $cambiaEstado     = $to !== '';
+        $cambiaVisibilidad = $vis !== '';
+
+        if (!$cambiaEstado && !$cambiaVisibilidad) {
+            Session::flash('error', 'No indicaste ningún cambio.');
+            Http::back('/admin/skills');
+        }
+        if ($cambiaEstado && !in_array($to, $valid, true)) {
             Session::flash('error', 'Estado no válido.');
             Http::back('/admin/skills');
         }
-
-        $update = ['status' => $to, 'review_notes' => $notes !== '' ? $notes : null];
-        if ($to === 'published' && empty($skill['published_at'])) {
-            $update['published_at'] = date('Y-m-d H:i:s');
+        if ($cambiaVisibilidad && !Visibility::isValid($vis)) {
+            Session::flash('error', 'Visibilidad no válida.');
+            Http::back('/admin/skills');
         }
+
+        $update = [];
+        $partes = [];
+
+        if ($cambiaEstado) {
+            $update['status']       = $to;
+            $update['review_notes'] = $notes !== '' ? $notes : null;
+            if ($to === 'published' && empty($skill['published_at'])) {
+                $update['published_at'] = date('Y-m-d H:i:s');
+            }
+            $partes[] = 'estado ' . Skill::statusLabel($to);
+        }
+        if ($cambiaVisibilidad) {
+            $update['visibility'] = $vis;
+            $partes[] = 'visibilidad ' . mb_strtolower(Visibility::label($vis));
+        }
+
         Database::update('skills', $update, 'id = :id', ['id' => (int) $skill['id']]);
 
-        $action = ['published' => 'skill_published', 'rejected' => 'skill_rejected', 'approved' => 'skill_approved'][$to] ?? 'skill_updated';
-        Audit::log($action, 'skill', (int) $skill['id'], ['to' => $to, 'name' => $skill['name']]);
+        $action = $cambiaEstado
+            ? (['published' => 'skill_published', 'rejected' => 'skill_rejected', 'approved' => 'skill_approved'][$to] ?? 'skill_updated')
+            : 'skill_updated';
+        Audit::log($action, 'skill', (int) $skill['id'], array_filter([
+            'name'        => $skill['name'],
+            'estado'      => $cambiaEstado ? $to : null,
+            'visibilidad' => $cambiaVisibilidad ? $vis : null,
+        ]));
 
-        $this->notifyAuthor($skill, $to, $notes, 'skill');
+        if ($cambiaEstado) {
+            $this->notifyAuthor($skill, $to, $notes, 'skill');
+        }
 
-        Session::flash('ok', 'Estado actualizado a ' . Skill::statusLabel($to) . '.');
+        Session::flash('ok', 'Actualizado: ' . implode(' y ', $partes) . '.');
         Http::back('/admin/skills');
     }
 
@@ -387,23 +423,54 @@ final class AdminController extends Controller
         }
 
         $to    = Http::input('status');
+        $vis   = Http::input('visibility');
         $notes = Http::inputRaw('review_notes');
         $valid = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'published', 'archived'];
-        if (!in_array($to, $valid, true)) {
+
+        $cambiaEstado      = $to !== '';
+        $cambiaVisibilidad = $vis !== '';
+
+        if (!$cambiaEstado && !$cambiaVisibilidad) {
+            Session::flash('error', 'No indicaste ningún cambio.');
+            Http::back('/admin/agents');
+        }
+        if ($cambiaEstado && !in_array($to, $valid, true)) {
             Session::flash('error', 'Estado no válido.');
             Http::back('/admin/agents');
         }
-
-        $update = ['status' => $to, 'review_notes' => $notes !== '' ? $notes : null];
-        if ($to === 'published' && empty($agent['published_at'])) {
-            $update['published_at'] = date('Y-m-d H:i:s');
+        if ($cambiaVisibilidad && !Visibility::isValid($vis)) {
+            Session::flash('error', 'Visibilidad no válida.');
+            Http::back('/admin/agents');
         }
+
+        $update = [];
+        $partes = [];
+
+        if ($cambiaEstado) {
+            $update['status']       = $to;
+            $update['review_notes'] = $notes !== '' ? $notes : null;
+            if ($to === 'published' && empty($agent['published_at'])) {
+                $update['published_at'] = date('Y-m-d H:i:s');
+            }
+            $partes[] = 'estado ' . Skill::statusLabel($to);
+        }
+        if ($cambiaVisibilidad) {
+            $update['visibility'] = $vis;
+            $partes[] = 'visibilidad ' . mb_strtolower(Visibility::label($vis));
+        }
+
         Database::update('agents', $update, 'id = :id', ['id' => (int) $agent['id']]);
-        Audit::log($to === 'published' ? 'agent_published' : 'agent_updated', 'agent', (int) $agent['id'], ['to' => $to]);
+        Audit::log($cambiaEstado && $to === 'published' ? 'agent_published' : 'agent_updated', 'agent', (int) $agent['id'], array_filter([
+            'name'        => $agent['name'],
+            'estado'      => $cambiaEstado ? $to : null,
+            'visibilidad' => $cambiaVisibilidad ? $vis : null,
+        ]));
 
-        $this->notifyAuthor($agent, $to, $notes, 'agent');
+        if ($cambiaEstado) {
+            $this->notifyAuthor($agent, $to, $notes, 'agent');
+        }
 
-        Session::flash('ok', 'Estado actualizado.');
+        Session::flash('ok', 'Actualizado: ' . implode(' y ', $partes) . '.');
         Http::back('/admin/agents');
     }
 
