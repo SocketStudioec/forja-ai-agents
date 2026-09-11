@@ -1271,6 +1271,32 @@ table.data .row-actions { display: flex; gap: .35rem; justify-content: flex-end;
 .reveal[data-d="4"] { transition-delay: .28s; }
 .reveal[data-d="5"] { transition-delay: .35s; }
 
+/* ------------------------------------------------- Legibilidad en móvil
+   Las etiquetas y microtextos que a 1200px leen como detalle tipográfico, en
+   un teléfono simplemente no se leen. Por debajo de tableta ninguno baja de
+   12px, que es el mínimo cómodo a esa distancia. */
+@media (max-width: 768px) {
+    .badge,
+    .skill-pill,
+    .card-role,
+    .eyebrow,
+    .stat .k,
+    .side-nav .grp,
+    .footer h2,
+    table.data th,
+    .code-head .name { font-size: 12px; }
+
+    .format-item .d,
+    .format-item .ext { font-size: 12px; }
+
+    .card-foot,
+    .text-xs,
+    .hint,
+    .check .d { font-size: 12.5px; }
+
+    .eyebrow { letter-spacing: .14em; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after {

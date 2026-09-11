@@ -68,7 +68,7 @@ use App\Core\Csrf;
   <aside class="side-stack">
     <div class="shellbox tight">
       <div class="core pad">
-        <h3 style="font-size:.95rem">Nueva categoría</h3>
+        <h2 style="font-size:.95rem;letter-spacing:-.02em">Nueva categoría</h2>
 
         <form method="post" action="<?= url('/admin/categories') ?>" class="mt-2" novalidate>
           <?= Csrf::field() ?>

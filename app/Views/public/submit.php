@@ -139,7 +139,7 @@ $err = static fn (string $k): string => isset($errors[$k]) ? ' has-error' : '';
       <!-- ----------------------------------------------------- Privacidad -->
       <div class="shellbox tight mt-2">
         <div class="core pad">
-          <h3 style="font-size:.95rem">Qué hacemos con tus datos</h3>
+          <h2 style="font-size:.95rem;letter-spacing:-.02em">Qué hacemos con tus datos</h2>
           <ul class="text-sm muted mt-1" style="padding-left:1.1rem;line-height:1.7">
             <li>Guardamos tu correo, el nombre que indiques y el contenido enviado.</li>
             <li>El correo se usa para informarte si tu envío se aprueba, se publica o requiere cambios.</li>
