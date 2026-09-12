@@ -3,6 +3,7 @@
 use App\Core\Auth;
 use App\Core\Csrf;
 use App\Core\Str;
+use App\Core\View;
 
 $isEdit = $agent !== null;
 $action = $isEdit ? url('/dashboard/agents/' . $agent['id'] . '/edit') : url('/dashboard/agents/new');
@@ -155,6 +156,8 @@ $plantillaReglas = "# Nombre del agente\n\n"
           </div>
         </div>
       </div>
+
+      <?= View::partial('partials/tier-fields', ['row' => $agent]) ?>
 
       <div class="shellbox tight">
         <div class="core pad">

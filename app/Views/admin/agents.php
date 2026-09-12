@@ -3,6 +3,7 @@
 use App\Core\Csrf;
 use App\Core\Str;
 use App\Core\View;
+use App\Core\Tier;
 use App\Core\Visibility;
 use App\Models\Skill;
 
@@ -40,6 +41,14 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
       <?php endforeach; ?>
     </select>
   </label>
+  <label class="filter-select">
+    <span class="sr-only">Tipo</span>
+    <select class="select" name="tier" data-autosubmit>
+      <option value="">Gratis y de pago</option>
+      <option value="free" <?= ($filters['tier'] ?? '') === 'free' ? 'selected' : '' ?>>Gratuitos</option>
+      <option value="paid" <?= ($filters['tier'] ?? '') === 'paid' ? 'selected' : '' ?>>De pago</option>
+    </select>
+  </label>
   <button class="btn btn-primary btn-sm" type="submit">Filtrar <?= btnIcon('filter') ?></button>
 </form>
 
@@ -56,7 +65,12 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
               <tr>
                 <td>
                   <a class="row-main" href="<?= url('/agents/' . $a['slug']) ?>"><?= e($a['name']) ?></a>
-                  <span class="row-sub mono">v<?= e($a['version']) ?></span>
+                  <span class="row-sub mono">
+                    v<?= e($a['version']) ?>
+                    <?php if (Tier::isPaid($a)): ?>
+                      <span class="badge badge-amber">de pago</span>
+                    <?php endif; ?>
+                  </span>
                 </td>
                 <td class="text-xs">
                   <?= e($a['author_display']) ?>

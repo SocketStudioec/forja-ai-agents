@@ -82,6 +82,10 @@ final class Skill
             $where[] = 's.tags LIKE :tag';
             $params['tag'] = '%' . $f['tag'] . '%';
         }
+        if (!empty($f['tier'])) {
+            $where[] = 's.tier = :tier';
+            $params['tier'] = $f['tier'];
+        }
 
         $orderMap = [
             'downloads' => 's.downloads DESC, s.published_at DESC',
@@ -147,6 +151,10 @@ final class Skill
         if (!empty($f['visibility'])) {
             $where[] = 's.visibility = :vis';
             $params['vis'] = $f['visibility'];
+        }
+        if (!empty($f['tier'])) {
+            $where[] = 's.tier = :tier';
+            $params['tier'] = $f['tier'];
         }
         if (!empty($f['category'])) {
             $where[] = 'c.slug = :cat';

@@ -132,6 +132,10 @@ final class Agent
             $where[] = 'a.compatibility LIKE :compat';
             $params['compat'] = '%' . $f['compat'] . '%';
         }
+        if (!empty($f['tier'])) {
+            $where[] = 'a.tier = :tier';
+            $params['tier'] = $f['tier'];
+        }
 
         $orderMap = [
             'downloads' => 'a.downloads DESC, a.published_at DESC',
@@ -182,6 +186,7 @@ final class Agent
 
         if (!empty($f['status']))     { $where[] = 'a.status = :st';       $params['st']  = $f['status']; }
         if (!empty($f['visibility'])) { $where[] = 'a.visibility = :vis';  $params['vis'] = $f['visibility']; }
+        if (!empty($f['tier']))       { $where[] = 'a.tier = :tier';       $params['tier'] = $f['tier']; }
         if (!empty($f['category'])) {
             $where[] = 'EXISTS (SELECT 1 FROM agent_categories acf
                                   JOIN categories ccf ON ccf.id = acf.category_id

@@ -286,6 +286,7 @@ final class AdminController extends Controller
             'category'   => Http::input('category'),
             'compat'     => Http::input('compat'),
             'user'       => Http::input('user'),
+            'tier'       => Http::input('tier'),
             'page'       => Http::inputInt('page', 1),
         ];
 
@@ -403,6 +404,7 @@ final class AdminController extends Controller
             'status'     => Http::input('status'),
             'visibility' => Http::input('visibility'),
             'category'   => Http::input('category'),
+            'tier'       => Http::input('tier'),
             'page'       => Http::inputInt('page', 1),
         ];
 

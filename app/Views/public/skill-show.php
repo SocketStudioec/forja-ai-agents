@@ -8,6 +8,7 @@ use App\Core\Config;
 use App\Core\Csrf;
 use App\Core\Packager;
 use App\Core\Str;
+use App\Core\Tier;
 use App\Core\View;
 
 $publicUrl = Config::absUrl('/skills/' . $skill['slug']);
@@ -46,6 +47,7 @@ $available = array_values(array_unique(array_merge(['json', 'md'], $formats)));
         <p class="lede mt-2"><?= e($skill['short_description']) ?></p>
 
         <div class="chips mt-2">
+          <?php if ($esDePago): ?><span class="badge badge-amber">De pago</span><?php endif; ?>
           <span class="badge badge-mint">v<?= e($skill['version']) ?></span>
           <?php if (!empty($skill['category_name'])): ?>
             <a class="badge" href="<?= url('/skills') ?>?category=<?= e($skill['category_slug']) ?>"><?= e($skill['category_name']) ?></a>
@@ -66,6 +68,37 @@ $available = array_values(array_unique(array_merge(['json', 'md'], $formats)));
           </div>
         <?php endif; ?>
 
+        <?php if ($esDePago && $canEdit): ?>
+          <div class="notice warn mt-2">
+            <?= icon('eye', 17) ?>
+            <span>
+              Es una plantilla de pago. Ves el contenido porque eres su autor o
+              administrador; para cualquier otra persona sólo se muestra qué hace.
+            </span>
+          </div>
+        <?php endif; ?>
+
+        <?php if (!$verContenido): ?>
+          <div class="shellbox mt-3">
+            <div class="core pad-lg">
+              <h2 style="font-size:1.15rem">Qué hace</h2>
+              <?php if (!empty($skill['teaser'])): ?>
+                <div class="prose mt-2"><?= \App\Core\Markdown::toHtml((string) $skill['teaser']) ?></div>
+              <?php else: ?>
+                <p class="muted mt-2"><?= e($skill['short_description']) ?></p>
+              <?php endif; ?>
+              <div class="notice mt-3">
+                <?= icon('info', 17) ?>
+                <span>
+                  El contenido de esta habilidad no se previsualiza ni se descarga
+                  desde el catálogo. Se entrega al contratarla.
+                </span>
+              </div>
+            </div>
+          </div>
+        <?php endif; ?>
+
+        <?php if ($verContenido): ?>
         <div class="shellbox mt-3" data-tabs>
           <div class="core">
             <div class="code-head">
@@ -97,6 +130,7 @@ $available = array_values(array_unique(array_merge(['json', 'md'], $formats)));
             </div>
           </div>
         </div>
+        <?php endif; ?>
 
         <?php if ($agents): ?>
           <div class="mt-3">
@@ -139,6 +173,11 @@ $available = array_values(array_unique(array_merge(['json', 'md'], $formats)));
       </div>
 
       <aside class="side-stack">
+        <?php if ($esDePago): ?>
+          <?= View::partial('partials/paid-panel', ['row' => $skill, 'tipo' => 'habilidad']) ?>
+        <?php endif; ?>
+
+        <?php if ($verContenido): ?>
         <div class="shellbox tight">
           <div class="core pad">
             <h3 style="font-size:.95rem">Descargar</h3>
@@ -176,6 +215,7 @@ $available = array_values(array_unique(array_merge(['json', 'md'], $formats)));
             </div>
           </div>
         </div>
+        <?php endif; ?>
 
         <div class="shellbox tight">
           <div class="core pad">

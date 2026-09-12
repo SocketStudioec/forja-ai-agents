@@ -10,6 +10,7 @@ use App\Core\Http;
 use App\Core\Markdown;
 use App\Core\Packager;
 use App\Core\Str;
+use App\Core\Tier;
 use App\Core\View;
 use App\Models\Category;
 use App\Models\Skill;
@@ -23,6 +24,7 @@ final class SkillController extends Controller
             'category' => Http::input('category'),
             'compat'   => Http::input('compat'),
             'tag'      => Http::input('tag'),
+            'tier'     => Http::input('tier'),
             'sort'     => Http::input('sort', 'recent'),
             'page'     => Http::inputInt('page', 1),
             'per_page' => 12,
@@ -65,16 +67,22 @@ final class SkillController extends Controller
             ) !== null;
         }
 
+        $esDePago     = Tier::isPaid($skill);
+        $puedeEditar  = Auth::ownsOrAdmin($skill['user_id'] !== null ? (int) $skill['user_id'] : null);
+        $verContenido = !$esDePago || $puedeEditar;
+
         $this->view('public/skill-show', [
             'skill'      => $skill,
-            'html'       => Markdown::toHtml($clean),
-            'jsonPreview'=> Packager::skillJson($skill),
+            'esDePago'     => $esDePago,
+            'verContenido' => $verContenido,
+            'html'       => $verContenido ? Markdown::toHtml($clean) : '',
+            'jsonPreview'=> $verContenido ? Packager::skillJson($skill) : '',
             'formats'    => Str::listFromCsv($skill['formats']),
             'related'    => Skill::related($skill, 3),
             'agents'     => Skill::usedByAgents((int) $skill['id']),
             'versions'   => Skill::versions((int) $skill['id'], 6),
             'isFavorite' => $isFavorite,
-            'canEdit'    => Auth::ownsOrAdmin($skill['user_id'] !== null ? (int) $skill['user_id'] : null),
+            'canEdit'    => $puedeEditar,
         ], (string) $skill['name']);
     }
 

@@ -11,6 +11,7 @@ use App\Core\Database;
 use App\Core\Http;
 use App\Core\Session;
 use App\Core\Str;
+use App\Core\Tier;
 use App\Core\Validator;
 use App\Core\Visibility;
 use App\Models\Agent;
@@ -652,6 +653,8 @@ final class DashboardController extends Controller
             return null;
         }
 
+        $tier = Tier::resolve(Http::input('tier'), (string) ($existing['tier'] ?? Tier::FREE));
+
         return [
             'name'              => $name,
             'short_description' => $short,
@@ -663,6 +666,10 @@ final class DashboardController extends Controller
             'version'           => $version,
             'visibility'        => $visibility,
             'definition_json'   => $definition !== '' ? $definition : null,
+            'tier'              => $tier,
+            'price_label'       => $tier === Tier::PAID ? (Http::input('price_label') ?: null) : null,
+            'contact_url'       => $tier === Tier::PAID ? (Http::input('contact_url') ?: null) : null,
+            'teaser'            => $tier === Tier::PAID ? (Http::inputRaw('teaser') ?: null) : null,
         ];
     }
 
@@ -712,6 +719,10 @@ final class DashboardController extends Controller
 
         $this->categoriasAgente = $categorias ?: ($categoryId > 0 ? [$categoryId] : []);
 
+        // Tier::resolve ignora lo que pida el formulario si quien envía no es
+        // administrador: conserva lo que ya tenía el recurso.
+        $tier = Tier::resolve(Http::input('tier'), (string) ($existing['tier'] ?? Tier::FREE));
+
         return [
             'name'              => $name,
             'role_title'        => $role !== '' ? $role : null,
@@ -723,6 +734,10 @@ final class DashboardController extends Controller
             'compatibility'     => Str::csvFromList($compat),
             'version'           => $version,
             'visibility'        => $visibility,
+            'tier'              => $tier,
+            'price_label'       => $tier === Tier::PAID ? (Http::input('price_label') ?: null) : null,
+            'contact_url'       => $tier === Tier::PAID ? (Http::input('contact_url') ?: null) : null,
+            'teaser'            => $tier === Tier::PAID ? (Http::inputRaw('teaser') ?: null) : null,
         ];
     }
 

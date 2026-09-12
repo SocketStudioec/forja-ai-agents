@@ -9,6 +9,7 @@ use App\Core\Database;
 use App\Core\Http;
 use App\Core\Markdown;
 use App\Core\Packager;
+use App\Core\Tier;
 use App\Models\Agent;
 use App\Models\Category;
 
@@ -20,6 +21,7 @@ final class AgentController extends Controller
             'q'        => Http::input('q'),
             'category' => Http::input('category'),
             'compat'   => Http::input('compat'),
+            'tier'     => Http::input('tier'),
             'sort'     => Http::input('sort', 'recent'),
             'page'     => Http::inputInt('page', 1),
             'per_page' => 12,
@@ -60,6 +62,12 @@ final class AgentController extends Controller
         $skills = Agent::skills((int) $agent['id']);
         [, $rules] = Markdown::splitFrontMatter((string) $agent['rules_md']);
 
+        // De una plantilla de pago se enseña qué hace, nunca cómo lo hace: ni
+        // las reglas, ni el manifiesto, ni los archivos de sus habilidades.
+        $esDePago   = Tier::isPaid($agent);
+        $puedeEditar = Auth::ownsOrAdmin($agent['user_id'] !== null ? (int) $agent['user_id'] : null);
+        $verContenido = !$esDePago || $puedeEditar;
+
         $isFavorite = false;
         if (Auth::check()) {
             $isFavorite = Database::first(
@@ -69,13 +77,15 @@ final class AgentController extends Controller
         }
 
         $this->view('public/agent-show', [
-            'agent'       => $agent,
-            'skills'      => $skills,
-            'rulesHtml'   => Markdown::toHtml($rules),
-            'rulesRaw'    => Packager::agentMarkdown($agent, $skills),
-            'jsonPreview' => Packager::agentJson($agent, $skills),
-            'isFavorite'  => $isFavorite,
-            'canEdit'     => Auth::ownsOrAdmin($agent['user_id'] !== null ? (int) $agent['user_id'] : null),
+            'agent'        => $agent,
+            'skills'       => $skills,
+            'rulesHtml'    => $verContenido ? Markdown::toHtml($rules) : '',
+            'rulesRaw'     => $verContenido ? Packager::agentMarkdown($agent, $skills) : '',
+            'jsonPreview'  => $verContenido ? Packager::agentJson($agent, $skills) : '',
+            'isFavorite'   => $isFavorite,
+            'canEdit'      => $puedeEditar,
+            'esDePago'     => $esDePago,
+            'verContenido' => $verContenido,
         ], (string) $agent['name']);
     }
 

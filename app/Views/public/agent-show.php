@@ -7,6 +7,7 @@ use App\Core\Auth;
 use App\Core\Config;
 use App\Core\Csrf;
 use App\Core\Str;
+use App\Core\Tier;
 use App\Core\View;
 
 $publicUrl = Config::absUrl('/agents/' . $agent['slug']);
@@ -41,6 +42,7 @@ $metaDesc  = Str::excerpt((string) $agent['short_description'], 155);
         <p class="lede mt-2"><?= e($agent['short_description']) ?></p>
 
         <div class="chips mt-2">
+          <?php if ($esDePago): ?><span class="badge badge-amber">De pago</span><?php endif; ?>
           <span class="badge badge-mint">v<?= e($agent['version']) ?></span>
           <span class="badge badge-sky"><?= count($skills) ?> habilidad<?= count($skills) === 1 ? '' : 'es' ?></span>
           <?php foreach (\App\Models\Agent::categoryPairs($agent) as $cat): ?>
@@ -60,7 +62,18 @@ $metaDesc  = Str::excerpt((string) $agent['short_description'], 155);
           </div>
         <?php endif; ?>
 
+        <?php if ($esDePago && $canEdit): ?>
+          <div class="notice warn mt-2">
+            <?= icon('eye', 17) ?>
+            <span>
+              Es una plantilla de pago. Ves el contenido porque eres su autor o
+              administrador; para cualquier otra persona sólo se muestra qué hace.
+            </span>
+          </div>
+        <?php endif; ?>
+
         <!-- ------------------------------------------ Selector de habilidades -->
+        <?php if ($verContenido): ?>
         <div class="shellbox mt-3" id="skillPicker">
           <div class="core">
             <div class="pad" style="border-bottom:1px solid var(--line)">
@@ -114,6 +127,46 @@ $metaDesc  = Str::excerpt((string) $agent['short_description'], 155);
           </div>
         </div>
 
+        <?php else: ?>
+          <!-- De pago: se enseña qué incluye, con nombre y descripción de cada
+               habilidad, pero sin enlaces a los archivos ni previsualización. -->
+          <div class="shellbox mt-3">
+            <div class="core">
+              <div class="pad" style="border-bottom:1px solid var(--line)">
+                <h2 style="font-size:1.15rem">Qué incluye</h2>
+                <p class="text-sm muted mt-1" style="margin-bottom:0">
+                  <?= count($skills) ?> habilidad<?= count($skills) === 1 ? '' : 'es' ?>
+                  que este agente sabe ejecutar.
+                </p>
+              </div>
+              <?php if ($skills): ?>
+                <div class="pad stack-sm">
+                  <?php foreach ($skills as $s): ?>
+                    <div class="format-item">
+                      <span class="ext"><?= icon('skill', 14) ?></span>
+                      <span>
+                        <span class="t"><?= e($s['name']) ?></span>
+                        <span class="d"><?= e(Str::excerpt((string) $s['short_description'], 120)) ?></span>
+                      </span>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              <?php else: ?>
+                <div class="pad"><p class="text-sm muted">El detalle se entrega al contratar.</p></div>
+              <?php endif; ?>
+            </div>
+          </div>
+
+          <?php if (!empty($agent['teaser'])): ?>
+            <div class="shellbox mt-3">
+              <div class="core pad-lg prose">
+                <?= \App\Core\Markdown::toHtml((string) $agent['teaser']) ?>
+              </div>
+            </div>
+          <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if ($verContenido): ?>
         <!-- --------------------------------------------- Reglas y manifiesto -->
         <div class="shellbox mt-3" data-tabs>
           <div class="core">
@@ -150,10 +203,16 @@ $metaDesc  = Str::excerpt((string) $agent['short_description'], 155);
             </div>
           </div>
         </div>
+        <?php endif; ?>
       </div>
 
       <!-- --------------------------------------------------------- Lateral -->
       <aside class="side-stack">
+        <?php if ($esDePago): ?>
+          <?= View::partial('partials/paid-panel', ['row' => $agent, 'tipo' => 'agente']) ?>
+        <?php endif; ?>
+
+        <?php if ($verContenido): ?>
         <div class="shellbox tight">
           <div class="core pad">
             <h3 style="font-size:.95rem">Descargar</h3>
@@ -210,6 +269,7 @@ $metaDesc  = Str::excerpt((string) $agent['short_description'], 155);
             </div>
           </div>
         </div>
+        <?php endif; ?>
 
         <div class="shellbox tight">
           <div class="core pad">

@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Http;
 use App\Core\Packager;
 use App\Core\Str;
+use App\Core\Tier;
 use App\Models\Agent;
 use App\Models\Skill;
 
@@ -19,6 +20,10 @@ final class DownloadController extends Controller
         $skill = Skill::findBySlug($args['slug'] ?? '');
         if ($skill === null || !$this->visible($skill)) {
             $this->notFound('Esa habilidad ya no está disponible para descarga.');
+            return;
+        }
+        if ($this->esDePago($skill)) {
+            $this->dePago('habilidad');
             return;
         }
 
@@ -73,6 +78,10 @@ final class DownloadController extends Controller
         $agent = Agent::findBySlug($args['slug'] ?? '');
         if ($agent === null || !$this->visible($agent)) {
             $this->notFound('Ese agente ya no está disponible para descarga.');
+            return;
+        }
+        if ($this->esDePago($agent)) {
+            $this->dePago('agente');
             return;
         }
 
@@ -134,6 +143,30 @@ final class DownloadController extends Controller
             return true;
         }
         return Auth::ownsOrAdmin($row['user_id'] !== null ? (int) $row['user_id'] : null);
+    }
+
+    /**
+     * Una plantilla de pago no se descarga. Su autor y los administradores sí
+     * pueden bajarla, porque necesitan revisar lo que están vendiendo.
+     */
+    private function esDePago(array $row): bool
+    {
+        if (!Tier::isPaid($row)) {
+            return false;
+        }
+        return !Auth::ownsOrAdmin($row['user_id'] !== null ? (int) $row['user_id'] : null);
+    }
+
+    private function dePago(string $tipo): void
+    {
+        Audit::log('download_blocked', $tipo, null, ['motivo' => 'plantilla de pago']);
+        http_response_code(402);
+        $this->view('errors/error', [
+            'code'    => 402,
+            'title'   => 'Esta plantilla es de pago',
+            'message' => 'Este ' . $tipo . ' no se descarga desde el catálogo. En su ficha puedes ver '
+                       . 'qué hace y cómo conseguirlo.',
+        ], 'Plantilla de pago');
     }
 
     private function notFound(string $message): void

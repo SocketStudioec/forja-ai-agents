@@ -2,6 +2,7 @@
 /** @var array|null $skill @var array $categories @var array $compat @var array $errors @var array $versions */
 use App\Core\Csrf;
 use App\Core\Str;
+use App\Core\View;
 
 $isEdit  = $skill !== null;
 $action  = $isEdit ? url('/dashboard/skills/' . $skill['id'] . '/edit') : url('/dashboard/skills/new');
@@ -112,6 +113,8 @@ $plantilla = "## Objetivo\n\nQué resuelve esta habilidad y cuándo usarla.\n\n"
           </div>
         </div>
       </div>
+
+      <?= View::partial('partials/tier-fields', ['row' => $skill]) ?>
 
       <div class="shellbox tight">
         <div class="core pad">

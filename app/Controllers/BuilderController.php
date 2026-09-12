@@ -11,6 +11,7 @@ use App\Core\Http;
 use App\Core\Packager;
 use App\Core\Session;
 use App\Core\Str;
+use App\Core\Tier;
 use App\Models\Agent;
 use App\Models\Skill;
 
@@ -23,7 +24,7 @@ final class BuilderController extends Controller
 {
     public function index(): void
     {
-        $agents = Agent::browse(['sort' => 'skills', 'per_page' => 36])['items'];
+        $agents = Agent::browse(['sort' => 'skills', 'per_page' => 36, 'tier' => 'free'])['items'];
         foreach ($agents as &$a) {
             $a['skill_list'] = Agent::skills((int) $a['id']);
         }
@@ -31,7 +32,7 @@ final class BuilderController extends Controller
 
         $this->view('public/builder', [
             'agents' => $agents,
-            'skills' => Skill::browse(['sort' => 'downloads', 'per_page' => 48])['items'],
+            'skills' => Skill::browse(['sort' => 'downloads', 'per_page' => 48, 'tier' => 'free'])['items'],
         ], 'Arma tu paquete');
     }
 
@@ -97,6 +98,11 @@ final class BuilderController extends Controller
             if ($agent === null || $agent['status'] !== 'published' || !in_array($agent['visibility'], ['public', 'unlisted'], true)) {
                 continue;
             }
+            // Una plantilla de pago no entra en un paquete, aunque alguien
+            // fuerce su slug en el formulario.
+            if (Tier::isPaid($agent)) {
+                continue;
+            }
             $agent['skills'] = Agent::skills((int) $agent['id']);
             $out[] = $agent;
         }
@@ -110,6 +116,9 @@ final class BuilderController extends Controller
         foreach ($slugs as $slug) {
             $skill = Skill::findBySlug($slug);
             if ($skill === null || $skill['status'] !== 'published' || !in_array($skill['visibility'], ['public', 'unlisted'], true)) {
+                continue;
+            }
+            if (Tier::isPaid($skill)) {
                 continue;
             }
             $out[] = $skill;

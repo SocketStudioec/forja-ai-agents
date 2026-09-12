@@ -51,6 +51,15 @@ $sorts = [
       </label>
 
       <label class="filter-select">
+        <span class="sr-only">Tipo</span>
+        <select class="select" name="tier" data-autosubmit>
+          <option value="">Gratis y de pago</option>
+          <option value="free" <?= ($filters['tier'] ?? '') === 'free' ? 'selected' : '' ?>>Sólo gratuitos</option>
+          <option value="paid" <?= ($filters['tier'] ?? '') === 'paid' ? 'selected' : '' ?>>Sólo de pago</option>
+        </select>
+      </label>
+
+      <label class="filter-select">
         <span class="sr-only">Ordenar</span>
         <select class="select" name="sort" data-autosubmit>
           <?php foreach ($sorts as $k => $label): ?>

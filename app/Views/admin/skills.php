@@ -3,6 +3,7 @@
 use App\Core\Csrf;
 use App\Core\Str;
 use App\Core\View;
+use App\Core\Tier;
 use App\Core\Visibility;
 use App\Models\Skill;
 
@@ -84,7 +85,8 @@ $statuses = ['draft', 'pending', 'under_review', 'approved', 'rejected', 'publis
                       title="<?= e(Visibility::hint((string) $s['visibility'])) ?>">
                   <?= e(Visibility::label((string) $s['visibility'])) ?>
                 </span>
-                <?php if ((int) $s['featured'] === 1): ?><span class="badge badge-amber">destacada</span><?php endif; ?>
+                <?php if (Tier::isPaid($s)): ?><span class="badge badge-amber">De pago</span><?php endif; ?>
+                <?php if ((int) $s['featured'] === 1): ?><span class="badge">destacada</span><?php endif; ?>
               </div>
 
               <p class="text-sm muted mt-1" style="margin-bottom:.5rem">

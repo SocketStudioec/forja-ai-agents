@@ -146,6 +146,25 @@ Las reglas y habilidades de marketing citan fuentes primarias en materia de
 cumplimiento. De dónde sale cada una está en
 [`docs/investigacion-marketing.md`](docs/investigacion-marketing.md).
 
+### Plantillas de pago
+
+Un agente o una habilidad puede marcarse como **de pago**. Entonces:
+
+- Aparece en el catálogo con su nombre, sus categorías, qué incluye y, si se
+  indicó, su precio.
+- **No se descarga.** El bloqueo está en el controlador de descarga, que
+  responde `402` a cualquier formato, no en ocultar el botón.
+- **No se previsualiza su contenido**: ni las reglas, ni el manifiesto, ni los
+  archivos de sus habilidades.
+- **No entra en los paquetes del constructor**, aunque se fuerce su slug en el
+  formulario.
+- En su lugar se muestra un panel con el precio y un enlace de contacto.
+
+Sólo un administrador puede marcarla. `Tier::resolve` ignora el campo del
+formulario cuando quien envía no lo es, así que un usuario no puede ni crear una
+de pago ni liberar una existente. Su autor y los administradores sí ven y
+descargan el contenido, porque necesitan revisar lo que venden.
+
 ---
 
 ## 6. Seguridad
